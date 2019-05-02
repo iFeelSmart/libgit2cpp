@@ -17,6 +17,8 @@ else()
 endif()
 
 if (BUNDLE_LIBGIT2)
+  set( BUILD_SHARED_LIBS OFF )
+  set( BUILD_CLAR OFF )
   add_subdirectory(libs/libgit2)
 endif()
 
@@ -56,28 +58,41 @@ set_target_properties(git2cpp PROPERTIES
   INTERFACE_COMPILE_FEATURES cxx_std_17
 )
 
-set(examples
-  add
-  branch
-  cat-file
-  diff
-  log
-  rev-list
-  showindex
-  status
-  init
-  rev-parse
-  general
-  remote
-  checkout
-)
+OPTION(SAMPLES "build samples" ON)
 
-foreach (example ${examples})
-  add_executable("${example}-cpp" examples/${example}.cpp)
-  target_link_libraries("${example}-cpp" git2cpp)
-endforeach(example)
+if (SAMPLES)
 
-add_executable(commit-graph-generator examples/commit-graph-generator.cpp)
-target_link_libraries(commit-graph-generator git2cpp)
+    set(examples
+      add
+      branch
+      cat-file
+      diff
+      log
+      rev-list
+      showindex
+      status
+      init
+      rev-parse
+      general
+    remote
+    checkout
+  )
 
-file(COPY test.sh DESTINATION . FILE_PERMISSIONS ${EXE_PERM})
+  foreach (example ${examples})
+    add_executable("${example}-cpp" examples/${example}.cpp)
+    target_link_libraries("${example}-cpp" git2cpp)
+  endforeach(example)
+
+  add_executable(commit-graph-generator examples/commit-graph-generator.cpp)
+  target_link_libraries(commit-graph-generator git2cpp)
+
+  file(COPY test.sh DESTINATION . FILE_PERMISSIONS ${EXE_PERM})
+
+endif()
+
+INSTALL (
+    DIRECTORY ${CMAKE_SOURCE_DIR}/include/git2cpp
+    DESTINATION include/
+    FILES_MATCHING PATTERN "*.h*")
+
+INSTALL(TARGETS git2cpp DESTINATION "lib" )
